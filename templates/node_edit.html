@@ -1,0 +1,34 @@
+{% extends "page.html" %}
+{% block title %}{% if node %}Edit{% else %}Create{% endif %} node{% endblock %}
+{% block subtitle %}{% if node %}Editing "{{ node.fqdn }}"{% else %}New item{% endif %}{% endblock %}
+
+{% block buttons %}
+    {% if node is defined %}<a href="/nodes/{{ node.fqdn }}"><button class="secondary-button pure-button">Back</button></a>{% endif %}
+{% endblock %}
+
+{% block body %}
+
+<div class="photo-view pure-g">
+    <div class="photo-form pure-u-2-3">
+        <form action="/node_edit" method="post" class="pure-form pure-form-stacked">
+            <fieldset>
+                <fieldset class="pure-group pure-u-1">
+                    <input name="fqdn" type="text" class="pure-input-1" placeholder="FQDN" value="{{ node.fqdn or '' }}" />
+                    <textarea name="body" class="pure-input-1" placeholder="Body" rows="15">{{ node and node.body or '' }}</textarea>
+                </fieldset>
+                <!-- <div class="pure-u-1">
+                    <label for="offset">Offset (minutes)</label>
+                    <input id="offset" class="pure-u-1-2" type="text" name="offset" value="xxx" />
+                </div> -->
+                <div class="pure-u-1">
+                    <input type="submit" class="pure-button pure-button-primary" name="op" value="{% if node %}Edit{% else %}Create{% endif %}" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="photo-info pure-u-1-3">
+        xxx
+    </div>
+</div>
+
+{% endblock %}

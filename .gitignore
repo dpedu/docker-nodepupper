@@ -1,0 +1,10 @@
+__pycache__
+build/
+dist/
+node_modules/
+nodepupper.egg-info/
+pupper.db*
+styles/css/
+styles/dist/
+styles/mincss/
+testenv/

@@ -1,0 +1,106 @@
+{% extends "page.html" %}
+{% block title %}{{ image.title or image.uuid }}{% endblock %}
+{% block subtitle %}{{ image.date }}{% endblock %}
+
+{% block buttons %}
+    <form action="/photo/{{ image.uuid }}/op" method="post">
+        {% if image.status == PhotoStatus.private %}
+            <input type="submit" class="secondary-button pure-button" name="op" value="Make public" />
+        {% else %}
+            <input type="submit" class="secondary-button pure-button" name="op" value="Make private" />
+        {% endif %}
+    </form>
+    <a href="/photo/{{ image.uuid }}/edit"><button class="secondary-button pure-button">Edit</button></a>
+{% endblock %}
+
+{% block body %}
+
+<div class="photo-view pure-g">
+    <div class="photo-preview pure-u-2-3">
+        <a href="/thumb/set/big/{{ image.uuid }}.jpg">
+            <img src="/thumb/set/preview/{{ image.uuid }}.jpg" />
+        </a>
+    </div>
+    <div class="photo-info pure-u-1-3">
+        {% if image.description %}
+        <div class="photo-description">
+            <h2>Description</h2>
+            <p>{{ image.description }}</p>
+        </div>
+        {% endif %}
+        <div class="photo-metadata">
+            <h2>Information</h2>
+            <ul>
+                <li>
+                    <strong>Date:</strong> {{ image.date }}
+                </li>
+                {% if image.date_offset %}
+                <li>
+                    <strong>Time offset: </strong> {{ image.date_offset }}m
+                </li>
+                <li>
+                    <strong>Embedded date: </strong>{{ image.date_real }}
+                </li>
+                {% endif %}
+                <li>
+                    <strong>Status: </strong>{{ image.status | statusstr }}
+                </li>
+                <li>
+                    <strong>Versions:</strong> {{ image.files|length }}
+                </li>
+                {% if image.lat != 0 %}
+                <li>
+                    <strong>Coordinates:</strong> <a href="/map?zoom=13&i={{ image.uuid }}">{{ image.lat }}, {{ image.lon }}</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="photo-formats">
+            <h2>Versions</h2>
+            <ul class="pure-g">
+            {% for img in image.files %}
+                <li class="pure-u-1 pure-g">
+                    <a href="/thumb/one/big/{{ img.uuid }}.jpg" class="pure-g-1-4">
+                        <img src="/thumb/one/small/{{ img.uuid }}.jpg" />
+                    </a>
+                    <div class="pure-u-3-4">
+                        <div>
+                                {{ img.uuid }}
+                        </div>
+                        <div>
+                            {{ img.path | basename }}
+                        </div>
+                        <div>
+                            {{ img.size | filesizeformat }}{% if img.width %} - {{ img.width }} x {{ img.height }}{% endif %}
+                        </div>
+                        {% if img.orientation > 0 %}
+                        <div>
+                            Rotation: {{ img.orientation * 90 }}&deg;
+                        </div>
+                        {% endif %}
+                        <div>
+                            {{ img.format }}
+                        </div>
+                        <div>
+                            <a href="/download/one/{{ img.uuid }}">download</a>
+                            <a href="/download/one/{{ img.uuid }}.{{ img.format | mime2ext }}?preview=true">preview</a>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        <div class="photo-tags">
+            <h2>Tags{% if auth %} <a href="/create_tags?uuid={{ image.uuid }}">add</a>{% endif %}</h2>
+            <ul class="tags-picker">
+            {% for tagi in image.tags %}
+                <li>
+                    <a href="/tag/{{ tagi.tag.slug }}">{{ tagi.tag.name }}</a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

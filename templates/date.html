@@ -1,0 +1,55 @@
+{% extends "page.html" %}
+{% block title %}{{ "Photos on {}".format(date.strftime("%b %d, %Y")) }}{% endblock %}
+{% block subtitle %}{% endblock %}
+
+{% block buttons %}
+    <form action="/create_tags" method="post">
+        <input type="hidden" name="fromdate" value="{{ date.strftime("%Y-%m-%d") }}">
+        <input type="submit" class="secondary-button pure-button" value="Tag all" />
+    </form>
+{% endblock %}
+
+
+
+{% block body %}
+
+{% set locals = namespace() %}
+
+{% set total_pages = (total_sets/pgsize)|ceil %}
+
+<div class="photo-feed">
+    {% set locals.im_date = "" %}
+    {% for item in images %}
+        {% set newdate = item.date.strftime("%b %d, %Y") %}
+        {% if newdate != locals.im_date %}
+            {% set locals.im_date = newdate %}
+            <div class="feed-divider year"><h4>{{ locals.im_date }}</h4></div>
+        {% endif %}
+        {% include "fragments/feed-photo.html" %}
+    {% endfor %}
+    <br style="clear:both" />
+    <div class="pager">
+        <h6>Page</h6>
+        {% if page > 0 %}
+        <div class="nav-prev">
+            <a href="{{path}}?page={{ page - 1 }}">Previous</a>
+        </div>
+        {% endif %}
+        <div class="pages">
+            <ul class="pager">
+            {% for pgnum in range(0, total_pages) %}
+                <li{% if pgnum == page %} class="current"{% endif %}>
+                    <a href="{{path}}?page={{ pgnum }}">{{ pgnum }}</a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% if page + 1 < total_pages %}
+        <div class="nav-next">
+            <a href="{{path}}?page={{ page + 1 }}">Next</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

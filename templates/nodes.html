@@ -1,0 +1,22 @@
+{% extends "page.html" %}
+{% block title %}All nodes{% endblock %}
+{% block subtitle %}<a href="/node_edit">Add</a>{% endblock %}
+{% block buttons %}{% endblock %}
+
+{% block body %}
+
+<div class="nodes-all">
+    {% for node in nodes %}
+        <div class="node">
+            <h2>{{ node.fqdn }}</h2>
+            <p>
+                <a href="/node/{{ node.fqdn }}">view</a> <a href="/node_edit?node={{ node.fqdn }}">edit</a>
+            </p>
+            <pre>
+{{ node.body }}
+            </pre>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

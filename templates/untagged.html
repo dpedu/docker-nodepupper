@@ -1,0 +1,24 @@
+{% extends "page.html" %}
+{% block title %}Untagged photos{% endblock %}
+{% block subtitle %}By date, descending{% endblock %}
+
+{% block body %}
+
+{% set locals = namespace() %}
+{% set total_pages = (total_items/pgsize)|ceil %}
+
+<div class="photo-feed">
+    {% set locals.im_date = "" %}
+    {% for item in images %}
+        {% set newdate = item.date.strftime("%b %d, %Y") %}
+        {% if newdate != locals.im_date %}
+            {% set locals.im_date = newdate %}
+            <div class="feed-divider year"><h4><a href="/date/{{ item.date.strftime("%Y-%m-%d") }}">{{ locals.im_date }}</a></h4></div>
+        {% endif %}
+        {% include "fragments/feed-photo.html" %}
+    {% endfor %}
+    <br style="clear:both" />
+    {% include "pager.html" %}
+</div>
+
+{% endblock %}

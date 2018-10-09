@@ -1,0 +1,57 @@
+{% extends "page.html" %}
+{% block title %}{{ tag.title or tag.name }}{% endblock %}
+{% block subtitle %}{{ tag.description }}{% endblock %}
+
+{% block buttons %}
+    <form action="/tag/{{ tag.uuid }}/op" method="post">
+        {% if tag.is_album %}<input type="submit" class="secondary-button pure-button" name="op" value="Demote to tag" />{% else %}
+        <input type="submit" class="secondary-button pure-button" name="op" value="Promote to album" />{% endif %}
+        <input type="submit" class="secondary-button pure-button" name="op" value="Make all public" />
+        <input type="submit" class="secondary-button pure-button" name="op" value="Make all private" />
+        <input type="submit" class="secondary-button pure-button" name="op" value="Delete tag" />
+    </form>
+    <a href="/map?zoom=6&a={{ tag.uuid }}"><button class="secondary-button pure-button">Map</button></a>
+    <a href="/tag/{{ tag.uuid }}/edit"><button class="secondary-button pure-button">Edit</button></a>
+{% endblock %}
+
+{% block body %}
+
+{% set locals = namespace() %}
+{% set total_pages = (total_items/pgsize)|ceil %}
+
+<div class="photo-feed">
+    {% set locals.im_date = "" %}
+    {% for item in images %}
+        {% set newdate = item.date.strftime("%b %d, %Y") %}
+        {% if newdate != locals.im_date %}
+            {% set locals.im_date = newdate %}
+            <div class="feed-divider year"><h4>{{ locals.im_date }}</h4></div>
+        {% endif %}
+        {% include "fragments/feed-photo.html" %}
+    {% endfor %}
+    <br style="clear:both" />
+    <div class="pager">
+        <h6>Page</h6>
+        {% if page > 0 %}
+        <div class="nav-prev">
+            <a href="{{path}}?page={{ page - 1 }}">Previous</a>
+        </div>
+        {% endif %}
+        <div class="pages">
+            <ul class="pager">
+            {% for pgnum in range(0, total_pages) %}
+                <li{% if pgnum == page %} class="current"{% endif %}>
+                    <a href="{{path}}?page={{ pgnum }}">{{ pgnum }}</a>
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% if page + 1 < total_pages %}
+        <div class="nav-next">
+            <a href="{{path}}?page={{ page + 1 }}">Next</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

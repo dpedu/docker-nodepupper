@@ -1,0 +1,61 @@
+{% extends "page.html" %}
+{% block title %}Tagging {{ num_photos }} photo{% if num_photos > 1 %}s{% endif %}{% endblock %}
+{% block subtitle %}{% endblock %}
+{% block buttons %}{% endblock %}
+
+
+{% block body %}
+{% set preview = 9 %}
+
+<div class="photo-tagging pure-g">
+    <div class="current-tags pure-u-1-3">
+        <h2>Images ({{ num_photos }})</h2>
+        <div>
+            {% for image in images %}{% if loop.index <= preview %}
+            <a href="/photo/{{ image.uuid }}">
+                <img src="/thumb/set/small/{{ image.uuid }}.jpg" />
+            </a>
+            {% endif %}{% endfor %}
+        </div>
+        {% if num_photos > preview %}<br clear="both" /><p>...and {{ num_photos - preview }} more</p>{% endif %}
+        <h2>Current Tags</h2>
+        <ul class="tags-picker">
+        {% for tagi in images[0].tags %}
+            <li>
+                <form action="/create_tags" method="post">
+                    {% if fromdate %}<input type="hidden" name="fromdate" value="{{ fromdate }}" />{% endif %}
+                    {% if uuid %}<input type="hidden" name="uuid" value="{{ uuid }}" />{% endif %}
+                    <input type="hidden" name="remove" value="{{ tagi.tag.uuid }}" />
+                    <input class="submit-link" type="submit" value="{{ tagi.tag.name }}" />
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="all-tags pure-u-1-3">
+        <h2>All tags</h2>
+        <ul class="tags-picker">
+        {% for tag in alltags %}
+            <li>
+                <form action="/create_tags" method="post">
+                    {% if fromdate %}<input type="hidden" name="fromdate" value="{{ fromdate }}" />{% endif %}
+                    {% if uuid %}<input type="hidden" name="uuid" value="{{ uuid }}" />{% endif %}
+                    <input type="hidden" name="tag" value="{{ tag.uuid }}" />
+                    <input class="submit-link" type="submit" value="{{ tag.name }}" />
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="add-tags pure-u-1-3">
+        <h2>Add tag</h2>
+        <form action="/create_tags" method="post" class="pure-form">
+            {% if fromdate %}<input type="hidden" name="fromdate" value="{{ fromdate }}" />{% endif %}
+            {% if uuid %}<input type="hidden" name="uuid" value="{{ uuid }}" />{% endif %}
+            <input type="text" name="newtag" placeholder="new tag name" />
+            <input type="submit" value="Add" class="pure-button pure-button-primary" />
+        </form>
+    </div>
+</div>
+
+{% endblock %}
