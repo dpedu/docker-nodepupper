@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from nodepupper.common import pwhash
 import math
 from urllib.parse import urlparse
+import yaml
 
 
 APPROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -58,7 +59,7 @@ class AppWeb(object):
         """
         with self.nodes.db.transaction() as c:
             ret = {
-                "classes": c.root.classes,
+                "classnames": c.root.classes.keys(),
                 # "all_albums": [],
                 "path": cherrypy.request.path_info,
                 "auth": True or auth()
@@ -67,7 +68,6 @@ class AppWeb(object):
 
     @cherrypy.expose
     def node_edit(self, node=None, op=None, body=None, fqdn=None):
-        print(op, body, fqdn)
         if op in ("Edit", "Create") and body and fqdn:
             with self.nodes.db.transaction() as c:
                 obj = c.root.nodes[fqdn] if fqdn in c.root.nodes else NObject(fqdn, body)
@@ -84,6 +84,20 @@ class AppWeb(object):
         with self.nodes.db.transaction() as c:
             yield self.render("nodes.html", nodes=c.root.nodes.values())
         # raise cherrypy.HTTPRedirect('feed', 302)
+
+    @cherrypy.expose
+    def puppet(self, fqdn):
+        with self.nodes.db.transaction() as c:
+            node = c.root.nodes[fqdn]
+            doc = {"environment": "production",
+                   "classes": {k: yaml.load(v.conf) or {} for k, v in node.classes.items()},
+                   "parameters": {}}
+
+            for name, attachment in node.classes.items():
+                print(name)
+
+            yield "---\n"
+            yield yaml.dump(doc, default_flow_style=False)
 
     @cherrypy.expose
     def login(self):
@@ -122,6 +136,13 @@ class NodesWeb(object):
         with self.nodes.db.transaction() as c:
             yield self.render("node.html", node=c.root.nodes[node])
 
+    @cherrypy.expose
+    def op(self, node, op, clsname, config):
+        with self.nodes.db.transaction() as c:
+            # TODO validate yaml
+            c.root.nodes[node].classes[clsname] = NClassAttachment(c.root.classes[clsname], config)
+        raise cherrypy.HTTPRedirect("/node/{}".format(node), 302)
+
 
 @cherrypy.popargs("cls")
 class ClassWeb(object):
@@ -131,7 +152,7 @@ class ClassWeb(object):
         self.render = root.render
 
     @cherrypy.expose
-    def index(self, cls):
+    def index(self, cls=None):
         # with self.nodes.db.transaction() as c:
         yield self.render("classes.html")
 
@@ -139,6 +160,14 @@ class ClassWeb(object):
     def op(self, cls, op=None, name=None):
         # with self.nodes.db.transaction() as c:
         yield self.render("classes.html")
+
+    @cherrypy.expose
+    def add(self, op, name):
+        with self.nodes.db.transaction() as c:
+            if op == "Create":
+                if name not in c.root.classes:
+                    c.root.classes[name] = NClass(name)
+        raise cherrypy.HTTPRedirect("/classes/{}".format(name), 302)
 
 
 def main():

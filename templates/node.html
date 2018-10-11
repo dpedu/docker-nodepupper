@@ -27,11 +27,25 @@
         <div class="node-classes">
             <h2>Classes</h2>
             <div class="class-list">
-                {% for class in node.classes %}
+                {% for name, class in node.classes.items() %}
                     <div class="class">
                         {{ class.cls.name }}
                     </div>
+                    <div class="class-conf">
+<pre>{{ class.conf }}</pre>
+                    </div>
                 {% endfor %}
+            </div>
+            <div class="node-add-class">
+                <form action="/node/{{ node.fqdn }}/op" method="post" class="pure-form pure-form-stacked">
+                    <select name="clsname">
+                        {% for cls in classnames %}
+                        <option value="{{ cls }}">{{ cls }}</option>
+                        {% endfor %}
+                    </select>
+                    <textarea name="config" cols="30" rows="10" placeholder="Yaml config"></textarea>
+                    <input type="submit" name="op" class="pure-button pure-button-primary" value="Attach"/>
+                </form>
             </div>
         </div>
     </div>

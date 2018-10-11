@@ -1,22 +1,29 @@
 {% extends "page.html" %}
 {% block title %}All classes{% endblock %}
-{% block subtitle %}<a href="/node_edit">Add</a>{% endblock %}
+{% block subtitle %}{% endblock %}
 {% block buttons %}{% endblock %}
 
 {% block body %}
 
 <div class="classes-all">
-    {% for node in classes %}
+    {% for cls in classnames %}
         <div class="class">
-            <h2>{{ node.fqdn }}</h2>
-            <p>
-                <a href="/node/{{ node.fqdn }}">view</a> <a href="/node_edit?node={{ node.fqdn }}">edit</a>
-            </p>
-            <pre>
-{{ node.body }}
-            </pre>
+            <h2>{{ cls }}</h2>
         </div>
     {% endfor %}
+</div>
+
+<div class="class-add">
+    <form action="/classes/add" method="post" class="pure-form pure-form-stacked">
+        <fieldset>
+            <fieldset class="pure-group pure-u-1">
+                <input name="name" type="text" class="pure-input-1" placeholder="Name" value="" />
+            </fieldset>
+            <div class="pure-u-1">
+                <input type="submit" name="op" class="pure-button pure-button-primary" value="Create" />
+            </div>
+        </fieldset>
+    </form>
 </div>
 
 {% endblock %}
