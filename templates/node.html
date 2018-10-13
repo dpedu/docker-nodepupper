@@ -17,12 +17,15 @@
     <div class="node">
         <div class="node_info">
             <h2>{{ node.name }}</h2>
-            <p>
-
-            </p>
             <pre>
 {{ node.body }}
             </pre>
+        </div>
+        <div class="node-parents">
+            <h2>Parents</h2>
+            {% for item in node.parents %}
+            {{ item.fqdn }} <br />
+            {% endfor %}
         </div>
         <div class="node-classes">
             <h2>Classes</h2>
@@ -37,6 +40,7 @@
                 {% endfor %}
             </div>
             <div class="node-add-class">
+                <h2>Add class</h2>
                 <form action="/node/{{ node.fqdn }}/op" method="post" class="pure-form pure-form-stacked">
                     <select name="clsname">
                         {% for cls in classnames %}
@@ -45,6 +49,17 @@
                     </select>
                     <textarea name="config" cols="30" rows="10" placeholder="Yaml config"></textarea>
                     <input type="submit" name="op" class="pure-button pure-button-primary" value="Attach"/>
+                </form>
+            </div>
+            <div class="node-add-parent">
+                <h2>Add parent</h2>
+                <form action="/node/{{ node.fqdn }}/op" method="post" class="pure-form pure-form-stacked">
+                    <select name="parent">
+                        {% for item in nodenames %}
+                        <option value="{{ item }}">{{ item }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" name="op" class="pure-button pure-button-primary" value="Add Parent"/>
                 </form>
             </div>
         </div>

@@ -35,6 +35,13 @@ def slugify(words):
     return ''.join(letter for letter in '-'.join(words.lower().split())
                    if ('a' <= letter <= 'z') or ('0' <= letter <= '9') or letter == '-')
 
+def recurse_params(node):
+    params = yaml.load(node.body)
+    for item in node.parents:
+        for k, v in recurse_params(item).items():
+            if k not in params:
+                params[k] = v
+    return params
 
 class AppWeb(object):
     def __init__(self, nodedb, template_dir):
@@ -60,6 +67,7 @@ class AppWeb(object):
         with self.nodes.db.transaction() as c:
             ret = {
                 "classnames": c.root.classes.keys(),
+                "nodenames": c.root.nodes.keys(),
                 # "all_albums": [],
                 "path": cherrypy.request.path_info,
                 "auth": True or auth()
@@ -91,11 +99,7 @@ class AppWeb(object):
             node = c.root.nodes[fqdn]
             doc = {"environment": "production",
                    "classes": {k: yaml.load(v.conf) or {} for k, v in node.classes.items()},
-                   "parameters": {}}
-
-            for name, attachment in node.classes.items():
-                print(name)
-
+                   "parameters": recurse_params(node)}
             yield "---\n"
             yield yaml.dump(doc, default_flow_style=False)
 
@@ -137,10 +141,15 @@ class NodesWeb(object):
             yield self.render("node.html", node=c.root.nodes[node])
 
     @cherrypy.expose
-    def op(self, node, op, clsname, config):
+    def op(self, node, op, clsname=None, config=None, parent=None):
         with self.nodes.db.transaction() as c:
-            # TODO validate yaml
-            c.root.nodes[node].classes[clsname] = NClassAttachment(c.root.classes[clsname], config)
+            if op == "Attach" and clsname and config:
+                # TODO validate yaml
+                c.root.nodes[node].classes[clsname] = NClassAttachment(c.root.classes[clsname], config)
+            elif op == "Add Parent" and parent:
+                c.root.nodes[node].parents.append(c.root.nodes[parent])
+            else:
+                raise Exception("F")
         raise cherrypy.HTTPRedirect("/node/{}".format(node), 302)
 
 
