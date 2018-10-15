@@ -1,7 +1,6 @@
 import os
 import cherrypy
 import logging
-from datetime import datetime, timedelta
 from nodepupper.nodeops import NodeOps, NObject, NClass, NClassAttachment
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from nodepupper.common import pwhash
@@ -35,6 +34,7 @@ def slugify(words):
     return ''.join(letter for letter in '-'.join(words.lower().split())
                    if ('a' <= letter <= 'z') or ('0' <= letter <= '9') or letter == '-')
 
+
 def recurse_params(node):
     params = yaml.load(node.body)
     for item in node.parents:
@@ -42,6 +42,16 @@ def recurse_params(node):
             if k not in params:
                 params[k] = v
     return params
+
+
+def recurse_classes(node):
+    classes = {c.cls: c.conf for _, c in node.classes.items()}
+    for item in node.parents:
+        for cls, conf in recurse_classes(item).items():
+            if cls not in classes:
+                classes[cls] = conf
+    return classes
+
 
 class AppWeb(object):
     def __init__(self, nodedb, template_dir):
@@ -75,12 +85,17 @@ class AppWeb(object):
         return ret
 
     @cherrypy.expose
-    def node_edit(self, node=None, op=None, body=None, fqdn=None):
+    def node_edit(self, node=None, op=None, body=None, fqdn=None, parent=None):
         if op in ("Edit", "Create") and body and fqdn:
             with self.nodes.db.transaction() as c:
                 obj = c.root.nodes[fqdn] if fqdn in c.root.nodes else NObject(fqdn, body)
                 obj.body = body
+                obj.parents.clear()
+                parent = parent or []
+                for name in [parent] if isinstance(parent, str) else parent:
+                    obj.parents.append(c.root.nodes[name])
                 c.root.nodes[fqdn] = obj
+
             raise cherrypy.HTTPRedirect("node/{}".format(fqdn), 302)
         with self.nodes.db.transaction() as c:
             yield self.render("node_edit.html", node=c.root.nodes.get(node, None))
@@ -94,12 +109,14 @@ class AppWeb(object):
         # raise cherrypy.HTTPRedirect('feed', 302)
 
     @cherrypy.expose
-    def puppet(self, fqdn):
+    def puppet(self, fqdn, preview=False):
         with self.nodes.db.transaction() as c:
             node = c.root.nodes[fqdn]
             doc = {"environment": "production",
-                   "classes": {k: yaml.load(v.conf) or {} for k, v in node.classes.items()},
+                   "classes": {cls.name: yaml.load(conf) or {} for cls, conf in recurse_classes(node).items()},
                    "parameters": recurse_params(node)}
+            if preview:
+                yield "<plaintext>"
             yield "---\n"
             yield yaml.dump(doc, default_flow_style=False)
 
@@ -131,7 +148,7 @@ class AppWeb(object):
 @cherrypy.popargs("node")
 class NodesWeb(object):
     def __init__(self, root):
-        self.root = root
+        # self.base = root
         self.nodes = root.nodes
         self.render = root.render
 

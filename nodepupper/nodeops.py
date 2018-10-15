@@ -21,6 +21,9 @@ class NObject(persistent.Persistent):
         self.classes = pmap()
         self.body = body
 
+    def parent_names(self):
+        return [n.fqdn for n in self.parents]
+
 
 class NClass(persistent.Persistent):
     def __init__(self, name):

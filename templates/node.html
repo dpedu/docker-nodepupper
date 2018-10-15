@@ -8,7 +8,9 @@
         <input type="submit" class="secondary-button pure-button" name="op" value="Make all private" />
         <input type="submit" class="secondary-button pure-button" name="op" value="Delete tag" />
     </form>-->
-    <a href="//node/{{ node.fqdn }}/attach"><button class="secondary-button pure-button">Attach class</button></a>
+    <a href="/node_edit?node={{ node.fqdn }}"><button class="secondary-button pure-button">Edit</button></a>
+    <a href="/node/{{ node.fqdn }}/attach"><button class="secondary-button pure-button">Attach class</button></a>
+    <a href="/puppet?preview=true&fqdn={{ node.fqdn }}"><button class="secondary-button pure-button">Render</button></a>
 {% endblock %}
 
 {% block body %}
@@ -24,7 +26,7 @@
         <div class="node-parents">
             <h2>Parents</h2>
             {% for item in node.parents %}
-            {{ item.fqdn }} <br />
+            <a href="/node/{{ item.fqdn }}">{{ item.fqdn }}</a><br />
             {% endfor %}
         </div>
         <div class="node-classes">
@@ -37,6 +39,7 @@
                     <div class="class-conf">
 <pre>{{ class.conf }}</pre>
                     </div>
+                    <hr/>
                 {% endfor %}
             </div>
             <div class="node-add-class">

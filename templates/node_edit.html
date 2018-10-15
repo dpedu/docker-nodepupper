@@ -21,6 +21,14 @@
                     <input id="offset" class="pure-u-1-2" type="text" name="offset" value="xxx" />
                 </div> -->
                 <div class="pure-u-1">
+                    <label for="parent">Parents</label>
+                    <select multiple name="parent">
+                        {% for item in nodenames %}{% if item != node.fqdn %}
+                        <option value="{{ item }}"{% if node and item in node.parent_names() %} selected="selected"{% endif %}>{{ item }}</option>
+                        {% endif %}{% endfor %}
+                    </select>
+                </div>
+                <div class="pure-u-1">
                     <input type="submit" class="pure-button pure-button-primary" name="op" value="{% if node %}Edit{% else %}Create{% endif %}" />
                 </div>
             </fieldset>
