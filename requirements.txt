@@ -9,6 +9,7 @@ more-itertools==4.3.0
 persistent==4.4.2
 portend==2.3
 pytz==2018.5
+PyYAML==3.13
 six==1.11.0
 tempora==1.13
 transaction==2.2.1
