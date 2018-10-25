@@ -1,5 +1,9 @@
 #!/bin/sh
 
-sudo chown -R app:app /data
 
-exec sudo -Hu app nodepupperd --database /data/pup.db $@
+mkdir /data/db
+
+chown -R app:app /data/db
+
+
+exec sudo -Hu app nodepupperd --database /data/db/pup.db $@
