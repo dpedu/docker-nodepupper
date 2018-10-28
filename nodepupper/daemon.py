@@ -165,6 +165,8 @@ class NodesWeb(object):
                 c.root.nodes[node].classes[clsname] = NClassAttachment(c.root.classes[clsname], config)
             elif op == "Add Parent" and parent:
                 c.root.nodes[node].parents.append(c.root.nodes[parent])
+            elif op == "detach" and clsname:
+                del c.root.nodes[node].classes[clsname]
             else:
                 raise Exception("F")
         raise cherrypy.HTTPRedirect("/node/{}".format(node), 302)

@@ -33,8 +33,12 @@
             <h2>Classes</h2>
             <div class="class-list">
                 {% for name, class in node.classes.items() %}
-                    <div class="class">
-                        {{ class.cls.name }}
+                    <div class="class-name">
+                        {{ class.cls.name }} -
+                        <form action="/node/{{ node.fqdn }}/op" method="post" class="pure-form-inline">
+                            <input type="hidden" name="clsname" value="{{ class.cls.name }}"/>
+                            <input type="submit" name="op" class="pure-button-inline" value="detach"/>
+                        </form>
                     </div>
                     <div class="class-conf">
 <pre>{{ class.conf }}</pre>
