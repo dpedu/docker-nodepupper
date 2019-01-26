@@ -16,7 +16,8 @@ setup(name='nodepupper',
       install_requires=[],
       entry_points={
           "console_scripts": [
-              "nodepupperd = nodepupper.daemon:main"
+              "nodepupperd = nodepupper.daemon:main",
+              "npcli = nodepupper.cli:main"
           ]
       },
       include_package_data=True,

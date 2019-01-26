@@ -53,6 +53,10 @@ def recurse_classes(node):
     return classes
 
 
+def yamldump(data):
+    return yaml.dump(data, default_flow_style=False)
+
+
 class AppWeb(object):
     def __init__(self, nodedb, template_dir):
         self.nodes = nodedb
@@ -118,7 +122,7 @@ class AppWeb(object):
             if preview:
                 yield "<plaintext>"
             yield "---\n"
-            yield yaml.dump(doc, default_flow_style=False)
+            yield yamldump(doc)
 
     @cherrypy.expose
     def login(self):
@@ -143,6 +147,61 @@ class AppWeb(object):
     @cherrypy.expose
     def error(self, status, message, traceback, version):
         yield self.render("error.html", status=status, message=message, traceback=traceback)
+
+
+@cherrypy.expose
+@cherrypy.popargs("node")
+class NodesApi(object):
+    def __init__(self, nodedb):
+        self.nodes = nodedb
+
+    def GET(self, node):
+        with self.nodes.db.transaction() as c:
+            node = c.root.nodes[node]
+            output = {
+                "body": yaml.load(node.body),
+                "parents": node.parent_names(),
+                "classes": {clsname: yaml.load(clsa.conf) for clsname, clsa in node.classes.items()}
+            }
+        yield yamldump(output)
+
+    def PUT(self, node):
+        nodeyaml = yaml.load(cherrypy.request.body.read().decode('utf-8'))
+        with self.nodes.db.transaction() as c:
+            newnode = NObject(node, yamldump(nodeyaml["body"]))
+            for clsname, clsbody in nodeyaml["classes"].items():
+                newnode.classes[clsname] = NClassAttachment(c.root.classes[clsname], yamldump(clsbody))
+            for parent in nodeyaml["parents"]:
+                newnode.parents.append(c.root.nodes[parent])
+            c.root.nodes[node] = newnode
+
+    def DELETE(self, node):
+        with self.nodes.db.transaction() as c:
+            del c.root.nodes[node]
+
+
+@cherrypy.expose
+@cherrypy.popargs("cls")
+class ClassesApi(object):
+    def __init__(self, nodedb):
+        self.nodes = nodedb
+
+    def GET(self, cls=None):
+        with self.nodes.db.transaction() as c:
+            clslist = list(c.root.classes.keys())
+        clslist.sort()
+        yield yamldump({"classes": clslist})
+
+    def PUT(self, cls):
+        with self.nodes.db.transaction() as c:
+            c.root.classes[cls] = NClass(cls)
+
+    def DELETE(self, cls):
+        with self.nodes.db.transaction() as c:
+            for node in c.root.nodes.values():
+                if cls in node.class_names():
+                    raise Exception("Class is in use by '{}'".format(node.fqdn))
+            del c.root.classes[cls]
 
 
 @cherrypy.popargs("node")
@@ -220,10 +279,11 @@ def main():
     tpl_dir = os.path.join(APPROOT, "templates") if not args.debug else "templates"
 
     web = AppWeb(library, tpl_dir)
+    napi = NodesApi(library)
+    capi = ClassesApi(library)
 
     def validate_password(realm, username, password):
-        s = library.session()
-        if s.query(User).filter(User.name == username, User.password == pwhash(password)).first():
+        if 1:
             return True
         return False
 
@@ -236,6 +296,8 @@ def main():
                                    '/login': {'tools.auth_basic.on': True,
                                               'tools.auth_basic.realm': 'webapp',
                                               'tools.auth_basic.checkpassword': validate_password}})
+    cherrypy.tree.mount(napi, '/api/node', {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}})
+    cherrypy.tree.mount(capi, '/api/class', {'/': {'request.dispatch': cherrypy.dispatch.MethodDispatcher()}})
 
     cherrypy.config.update({
         'tools.sessions.on': True,

@@ -24,6 +24,9 @@ class NObject(persistent.Persistent):
     def parent_names(self):
         return [n.fqdn for n in self.parents]
 
+    def class_names(self):
+        return list(self.classes.keys())
+
 
 class NClass(persistent.Persistent):
     def __init__(self, name):
