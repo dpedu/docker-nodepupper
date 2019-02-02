@@ -168,15 +168,23 @@ class NodesApi(object):
     def PUT(self, node):
         nodeyaml = yaml.load(cherrypy.request.body.read().decode('utf-8'))
         with self.nodes.db.transaction() as c:
-            newnode = NObject(node, yamldump(nodeyaml["body"]))
+            newnode = c.root.nodes.get(node)
+            if not newnode:
+                newnode = c.root.nodes[node] = NObject(node, "{}")
+            newnode.body = yamldump(nodeyaml["body"])
+            newnode.classes.clear()
             for clsname, clsbody in nodeyaml["classes"].items():
                 newnode.classes[clsname] = NClassAttachment(c.root.classes[clsname], yamldump(clsbody))
+            newnode.parents.clear()
             for parent in nodeyaml["parents"]:
                 newnode.parents.append(c.root.nodes[parent])
-            c.root.nodes[node] = newnode
 
     def DELETE(self, node):
         with self.nodes.db.transaction() as c:
+            for name, othernode in c.root.nodes.items():
+                for parent in othernode.parents:
+                    if node == parent.fqdn:
+                        raise Exception("Node is parent of '{}'".format(othernode.fqdn))
             del c.root.nodes[node]
 
 
