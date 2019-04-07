@@ -80,8 +80,8 @@ class AppWeb(object):
         """
         with self.nodes.db.transaction() as c:
             ret = {
-                "classnames": c.root.classes.keys(),
-                "nodenames": c.root.nodes.keys(),
+                "classnames": list(c.root.classes.keys()),
+                "nodenames": list(c.root.nodes.keys()),
                 # "all_albums": [],
                 "path": cherrypy.request.path_info,
                 "auth": True or auth()
@@ -102,14 +102,14 @@ class AppWeb(object):
 
             raise cherrypy.HTTPRedirect("node/{}".format(fqdn), 302)
         with self.nodes.db.transaction() as c:
-            yield self.render("node_edit.html", node=c.root.nodes.get(node, None))
+            return self.render("node_edit.html", node=c.root.nodes.get(node, None))
 
     @cherrypy.expose
     def index(self):
         """
         """
         with self.nodes.db.transaction() as c:
-            yield self.render("nodes.html", nodes=c.root.nodes.values())
+            return self.render("nodes.html", nodes=c.root.nodes.values())
         # raise cherrypy.HTTPRedirect('feed', 302)
 
     @cherrypy.expose
@@ -146,7 +146,7 @@ class AppWeb(object):
 
     @cherrypy.expose
     def error(self, status, message, traceback, version):
-        yield self.render("error.html", status=status, message=message, traceback=traceback)
+        return self.render("error.html", status=status, message=message, traceback=traceback)
 
 
 @cherrypy.expose
@@ -222,7 +222,7 @@ class NodesWeb(object):
     @cherrypy.expose
     def index(self, node):
         with self.nodes.db.transaction() as c:
-            yield self.render("node.html", node=c.root.nodes[node])
+            return self.render("node.html", node=c.root.nodes[node])
 
     @cherrypy.expose
     def op(self, node, op, clsname=None, config=None, parent=None):
@@ -249,12 +249,12 @@ class ClassWeb(object):
     @cherrypy.expose
     def index(self, cls=None):
         # with self.nodes.db.transaction() as c:
-        yield self.render("classes.html")
+        return self.render("classes.html")
 
     @cherrypy.expose
     def op(self, cls, op=None, name=None):
         # with self.nodes.db.transaction() as c:
-        yield self.render("classes.html")
+        return self.render("classes.html")
 
     @cherrypy.expose
     def add(self, op, name):
