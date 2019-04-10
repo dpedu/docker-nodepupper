@@ -155,15 +155,19 @@ class NodesApi(object):
     def __init__(self, nodedb):
         self.nodes = nodedb
 
-    def GET(self, node):
+    def GET(self, node=None):
         with self.nodes.db.transaction() as c:
+            if not node:
+                yield yamldump({"nodes": list(c.root.nodes.keys())})
+                return
+
             node = c.root.nodes[node]
             output = {
                 "body": yaml.load(node.body),
                 "parents": node.parent_names(),
                 "classes": {clsname: yaml.load(clsa.conf) for clsname, clsa in node.classes.items()}
             }
-        yield yamldump(output)
+            yield yamldump(output)
 
     def PUT(self, node):
         nodeyaml = yaml.load(cherrypy.request.body.read().decode('utf-8'))

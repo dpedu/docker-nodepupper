@@ -55,6 +55,7 @@ def main():
 
     spr_action = parser.add_subparsers(dest="action", help="action to take")
     spr_action.add_parser("classlist", help="show list of classes")
+    spr_action.add_parser("nodelist", help="show list of nodes")
 
     spr_new = spr_action.add_parser("new", help="create a node")
     spr_new.add_argument("node", help="name of node to create")
@@ -104,6 +105,9 @@ def main():
                 raise
         else:
             print("No changes, exiting")
+
+    elif args.action == "nodelist":
+        print(r.get(args.host.rstrip("/") + "/api/node").text)
 
     elif args.action == "classlist":
         print(r.get(args.host.rstrip("/") + "/api/class").text)
