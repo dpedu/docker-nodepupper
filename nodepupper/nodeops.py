@@ -1,5 +1,7 @@
 import ZODB
-import ZODB.FileStorage
+from relstorage.storage import RelStorage
+from relstorage.options import Options
+from relstorage.adapters.mysql import MySQLAdapter
 import persistent
 import persistent.list
 import persistent.mapping
@@ -41,7 +43,9 @@ class NClassAttachment(persistent.Persistent):
 
 class NodeOps(object):
     def __init__(self, db_path):
-        self.storage = ZODB.FileStorage.FileStorage(db_path)
+        self.mysql = MySQLAdapter(host="localhost", user="zodb", passwd="zodb", db="zodb",
+                                  options=Options(keep_history=False))
+        self.storage = RelStorage(adapter=self.mysql)
         self.db = ZODB.DB(self.storage)
 
         with self.db.transaction() as c:
