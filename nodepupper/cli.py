@@ -72,6 +72,8 @@ def main():
     spr_delc = spr_action.add_parser("delclass", help="delete a class")
     spr_delc.add_argument("cls", help="name of class to delete")
 
+    spr_dump = spr_action.add_parser("dump", help="dump the database")
+
     args = parser.parse_args()
     r = requests.session()
 
@@ -117,6 +119,17 @@ def main():
 
     elif args.action == "delclass":
         r.delete(args.host.rstrip("/") + "/api/class/" + args.cls).raise_for_status()
+
+    elif args.action == "dump":
+        nodes = yaml.load(r.get(args.host.rstrip("/") + "/api/node").text)["nodes"]
+
+        dump = {"classes": yaml.load(r.get(args.host.rstrip("/") + "/api/class").text)["classes"],
+                "nodes": {}}
+
+        for nodename in nodes:
+            dump["nodes"][nodename] = yaml.load(getnode(nodename))
+
+        print(yaml.dump(dump, default_flow_style=False))
 
 
 if __name__ == "__main__":
