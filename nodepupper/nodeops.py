@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 import ZODB
 from relstorage.storage import RelStorage
 from relstorage.options import Options
@@ -42,8 +43,10 @@ class NClassAttachment(persistent.Persistent):
 
 
 class NodeOps(object):
-    def __init__(self, db_path):
-        self.mysql = MySQLAdapter(host="localhost", user="zodb", passwd="zodb", db="zodb",
+    def __init__(self, db_uri):
+        uri = urlparse(db_uri)
+
+        self.mysql = MySQLAdapter(host=uri.hostname, user=uri.username, passwd=uri.password, db=uri.path[1:],
                                   options=Options(keep_history=False))
         self.storage = RelStorage(adapter=self.mysql)
         self.db = ZODB.DB(self.storage)
