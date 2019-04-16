@@ -20,15 +20,13 @@ ADD . /tmp/code/
 COPY --from=0 /tmp/code/styles/dist/style.css /tmp/code/styles/dist/style.css
 
 RUN apt-get update && \
-    apt-get install -y python3-pip sudo
+    apt-get install -y python3-pip sudo git
 
 RUN pip3 install -U pip && \
     cd /tmp/code && \
     pip install -r requirements.txt && \
     python3 setup.py install && \
     useradd --uid 1000 app
-
-VOLUME /data/
 
 ADD start /start
 

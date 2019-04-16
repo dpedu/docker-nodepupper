@@ -8,6 +8,9 @@ import tempfile
 import subprocess
 
 
+import sys
+
+
 APPNAME = "npcli"
 CONFDIR = user_config_dir(APPNAME)
 CONFPATH = os.path.join(CONFDIR, "conf.json")
@@ -74,6 +77,9 @@ def main():
 
     spr_dump = spr_action.add_parser("dump", help="dump the database")
 
+    spr_import = spr_action.add_parser("import", help="import a database dump")
+    spr_import.add_argument("fname", help="db dump yaml file to import")
+
     args = parser.parse_args()
     r = requests.session()
 
@@ -130,6 +136,21 @@ def main():
             dump["nodes"][nodename] = yaml.load(getnode(nodename))
 
         print(yaml.dump(dump, default_flow_style=False))
+
+    elif args.action == "import":
+        with open(args.fname) as f:
+            dump = yaml.load(f)
+
+        for clsname in dump["classes"]:
+            r.put(args.host.rstrip("/") + "/api/class/" + clsname).raise_for_status()
+
+        # just make the nodes first
+        for nodename, nodebody in dump["nodes"].items():
+            putnode(nodename, yaml.dump({"body": {}, "classes": {}, "parents": []})).raise_for_status()
+
+        # then fill out node bodies to avoid missing parent ordering issues
+        for nodename, nodebody in dump["nodes"].items():
+            putnode(nodename, yaml.dump(nodebody)).raise_for_status()
 
 
 if __name__ == "__main__":

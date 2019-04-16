@@ -1,5 +1,8 @@
+from urllib.parse import urlparse
 import ZODB
-import ZODB.FileStorage
+from relstorage.storage import RelStorage
+from relstorage.options import Options
+from relstorage.adapters.mysql import MySQLAdapter
 import persistent
 import persistent.list
 import persistent.mapping
@@ -40,8 +43,12 @@ class NClassAttachment(persistent.Persistent):
 
 
 class NodeOps(object):
-    def __init__(self, db_path):
-        self.storage = ZODB.FileStorage.FileStorage(db_path)
+    def __init__(self, db_uri):
+        uri = urlparse(db_uri)
+
+        self.mysql = MySQLAdapter(host=uri.hostname, user=uri.username, passwd=uri.password, db=uri.path[1:],
+                                  options=Options(keep_history=False))
+        self.storage = RelStorage(adapter=self.mysql)
         self.db = ZODB.DB(self.storage)
 
         with self.db.transaction() as c:

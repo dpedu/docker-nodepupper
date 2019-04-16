@@ -1,9 +1,3 @@
 #!/bin/sh
 
-
-mkdir /data/db
-
-chown -R app:app /data/db
-
-
-exec sudo -Hu app nodepupperd --database /data/db/pup.db $@
+exec sudo --preserve-env -Hu app nodepupperd $@

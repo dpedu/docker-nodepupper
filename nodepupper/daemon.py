@@ -3,10 +3,10 @@ import cherrypy
 import logging
 from nodepupper.nodeops import NodeOps, NObject, NClass, NClassAttachment
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from nodepupper.common import pwhash
-import math
 from urllib.parse import urlparse
+import math
 import yaml
+import sys
 
 
 APPROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
@@ -206,7 +206,8 @@ class ClassesApi(object):
 
     def PUT(self, cls):
         with self.nodes.db.transaction() as c:
-            c.root.classes[cls] = NClass(cls)
+            if cls not in c.root.classes:
+                c.root.classes[cls] = NClass(cls)
 
     def DELETE(self, cls):
         with self.nodes.db.transaction() as c:
@@ -278,13 +279,18 @@ def main():
     parser.add_argument('-p', '--port', default=8080, type=int, help="tcp port to listen on")
     # parser.add_argument('-l', '--library', default="./library", help="library path")
     # parser.add_argument('-c', '--cache', default="./cache", help="cache path")
-    parser.add_argument('-s', '--database', default="./pupper.db", help="path to persistent sqlite database")
+    parser.add_argument('-s', '--database', default=os.environ.get('DATABASE_URI', None),
+                        help="mysql:// connection uri")
     parser.add_argument('--debug', action="store_true", help="enable development options")
 
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO if args.debug else logging.WARNING,
                         format="%(asctime)-15s %(levelname)-8s %(filename)s:%(lineno)d %(message)s")
+
+    if not args.database:
+        print("--database or $DATABASE_URI is required")
+        sys.exit(2)
 
     library = NodeOps(args.database)
 
