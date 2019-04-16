@@ -4,7 +4,7 @@ from setuptools import setup
 import os
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 with open(os.path.join(os.path.dirname(__file__), "requirements.txt")) as f:
     __requirements__ = [line.strip() for line in f.readlines()]
 

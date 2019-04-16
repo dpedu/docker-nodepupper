@@ -206,7 +206,8 @@ class ClassesApi(object):
 
     def PUT(self, cls):
         with self.nodes.db.transaction() as c:
-            c.root.classes[cls] = NClass(cls)
+            if cls not in c.root.classes:
+                c.root.classes[cls] = NClass(cls)
 
     def DELETE(self, cls):
         with self.nodes.db.transaction() as c:

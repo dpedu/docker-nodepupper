@@ -28,8 +28,6 @@ RUN pip3 install -U pip && \
     python3 setup.py install && \
     useradd --uid 1000 app
 
-VOLUME /data/
-
 ADD start /start
 
 ENTRYPOINT ["/start"]
