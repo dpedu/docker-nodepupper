@@ -8,12 +8,9 @@ import tempfile
 import subprocess
 
 
-import sys
-
-
 APPNAME = "npcli"
 CONFDIR = user_config_dir(APPNAME)
-CONFPATH = os.path.join(CONFDIR, "conf.json")
+CONFPATH = os.path.join(CONFDIR, "conf.json")  # ~/Library/Application Support/npcli/conf.json
 
 
 def editorloop(fpath, validator):
@@ -52,9 +49,12 @@ def main():
                                      epilog="host/username/password will be saved to {} "
                                             "after first use.".format(CONFPATH))
 
-    parser.add_argument("--host", default=conf["host"], help="http/s host to connect to")
-    # parser.add_argument("-u", "--username", help="username")
-    # parser.add_argument("-p", "--password", help="password")
+    parser.add_argument("--host", help="http/s host to connect to",
+                        default=os.environ.get('NPCLI_HOST', None) or conf["host"])
+    parser.add_argument("-u", "--username", help="username",
+                        default=os.environ.get('NPCLI_USERNAME', None) or conf["username"])
+    parser.add_argument("-p", "--password", help="password",
+                        default=os.environ.get('NPCLI_PASSWORD', None) or conf["password"])
 
     spr_action = parser.add_subparsers(dest="action", help="action to take")
     spr_action.add_parser("classlist", help="show list of classes")
@@ -82,6 +82,12 @@ def main():
 
     args = parser.parse_args()
     r = requests.session()
+
+    if args.username and args.password:
+        r.auth = (args.username, args.password)
+
+    if not args.host:
+        parser.error('--host, $NPCLI_HOST, or config file is required')
 
     def getnode(nodename):
         req = r.get(args.host.rstrip("/") + "/api/node/" + nodename)
