@@ -61,6 +61,7 @@ def main():
     spr_action.add_parser("nodelist", help="show list of nodes")
 
     spr_new = spr_action.add_parser("new", help="create a node")
+    spr_new.add_argument("--parents", nargs="+", help="parent nodes")
     spr_new.add_argument("node", help="name of node to create")
 
     spr_edit = spr_action.add_parser("edit", help="edit a node")
@@ -98,7 +99,9 @@ def main():
         return r.put(args.host.rstrip("/") + "/api/node/" + nodename, data=body)
 
     if args.action == "new":
-        putnode(args.node, yaml.dump({"body": {}, "classes": {}, "parents": []})).raise_for_status()
+        putnode(args.node, yaml.dump({"body": {},
+                                      "classes": {},
+                                      "parents": args.parents or []})).raise_for_status()
     elif args.action == "del":
         r.delete(args.host.rstrip("/") + "/api/node/" + args.node).raise_for_status()
     elif args.action == "edit":
