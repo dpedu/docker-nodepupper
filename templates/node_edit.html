@@ -13,7 +13,7 @@
         <form action="/node_edit" method="post" class="pure-form pure-form-stacked">
             <fieldset>
                 <fieldset class="pure-group pure-u-1">
-                    <input name="fqdn" type="text" class="pure-input-1" placeholder="FQDN" value="{{ node.fqdn or '' }}" />
+                    <input name="name" type="text" class="pure-input-1" placeholder="FQDN" value="{{ node.fqdn or '' }}" />
                     <textarea name="body" class="pure-input-1" placeholder="Body" rows="15">{{ node and node.body or '' }}</textarea>
                 </fieldset>
                 <!-- <div class="pure-u-1">
@@ -29,6 +29,7 @@
                     </select>
                 </div>
                 <div class="pure-u-1">
+                    <input type="hidden" name="fqdn" value="{{ node.fqdn or '' }}"/>
                     <input type="submit" class="pure-button pure-button-primary" name="op" value="{% if node %}Edit{% else %}Create{% endif %}" />
                 </div>
             </fieldset>

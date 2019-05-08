@@ -89,18 +89,26 @@ class AppWeb(object):
         return ret
 
     @cherrypy.expose
-    def node_edit(self, node=None, op=None, body=None, fqdn=None, parent=None):
-        if op in ("Edit", "Create") and body and fqdn:
+    def node_edit(self, node=None, op=None, body=None, fqdn=None, parent=None, name=None):
+        if op in ("Edit", "Create") and body and name:
             with self.nodes.db.transaction() as c:
-                obj = c.root.nodes[fqdn] if fqdn in c.root.nodes else NObject(fqdn, body)
+                if name and fqdn:  # existing node
+                    obj = c.root.nodes[fqdn]
+                    if name != fqdn:
+                        self.nodes.rename(c, obj, name)
+                else:  # new node
+                    if name in c.root.nodes:
+                        raise Exception("node already exists")
+                    obj = NObject(name, body)
+
                 obj.body = body
                 obj.parents.clear()
                 parent = parent or []
-                for name in [parent] if isinstance(parent, str) else parent:
-                    obj.parents.append(c.root.nodes[name])
-                c.root.nodes[fqdn] = obj
+                for pname in [parent] if isinstance(parent, str) else parent:
+                    obj.parents.append(c.root.nodes[pname])
+                c.root.nodes[name] = obj
 
-            raise cherrypy.HTTPRedirect("node/{}".format(fqdn), 302)
+            raise cherrypy.HTTPRedirect("node/{}".format(name), 302)
         with self.nodes.db.transaction() as c:
             return self.render("node_edit.html", node=c.root.nodes.get(node, None))
 
