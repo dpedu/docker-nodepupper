@@ -57,7 +57,7 @@ class NodeOps(object):
             if "classes" not in c.root():
                 c.root.classes = BTrees.OOBTree.BTree()
 
-    def rename(self, c, node, newname):
+    def rename_node(self, c, node, newname):
         # check new name isnt taken
         if newname in c.root.nodes:
             raise Exception(f"{newname} already exists")

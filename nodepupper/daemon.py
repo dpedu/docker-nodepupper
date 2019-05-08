@@ -95,7 +95,7 @@ class AppWeb(object):
                 if name and fqdn:  # existing node
                     obj = c.root.nodes[fqdn]
                     if name != fqdn:
-                        self.nodes.rename(c, obj, name)
+                        self.nodes.rename_node(c, obj, name)
                 else:  # new node
                     if name in c.root.nodes:
                         raise Exception("node already exists")
@@ -162,32 +162,41 @@ class NodesApi(object):
         self.nodes = nodedb
 
     def GET(self, node=None):
+        cherrypy.response.headers["Content-type"] = "text/plain"
         with self.nodes.db.transaction() as c:
             if not node:
-                yield yamldump({"nodes": list(c.root.nodes.keys())})
-                return
+                return yamldump({"nodes": list(c.root.nodes.keys())})
 
             node = c.root.nodes[node]
             output = {
+                "fqdn": node.fqdn,
                 "body": yaml.load(node.body),
                 "parents": node.parent_names(),
                 "classes": {clsname: yaml.load(clsa.conf) for clsname, clsa in node.classes.items()}
             }
-            yield yamldump(output)
+            return yamldump(output)
 
     def PUT(self, node):
         nodeyaml = yaml.load(cherrypy.request.body.read().decode('utf-8'))
         with self.nodes.db.transaction() as c:
+            # load node
             newnode = c.root.nodes.get(node)
+            # do renaming if required
+            if newnode and nodeyaml["fqdn"] != newnode.fqdn:
+                self.nodes.rename_node(c, newnode, nodeyaml["fqdn"])
+            # create node if one wasn't found
             if not newnode:
                 newnode = c.root.nodes[node] = NObject(node, "{}")
-            newnode.body = yamldump(nodeyaml["body"])
+            # restore class links
             newnode.classes.clear()
             for clsname, clsbody in nodeyaml["classes"].items():
                 newnode.classes[clsname] = NClassAttachment(c.root.classes[clsname], yamldump(clsbody))
+            # restore parent links
             newnode.parents.clear()
             for parent in nodeyaml["parents"]:
                 newnode.parents.append(c.root.nodes[parent])
+            # update body
+            newnode.body = yamldump(nodeyaml["body"])
 
     def DELETE(self, node):
         with self.nodes.db.transaction() as c:
