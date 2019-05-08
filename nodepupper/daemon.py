@@ -121,16 +121,14 @@ class AppWeb(object):
         # raise cherrypy.HTTPRedirect('feed', 302)
 
     @cherrypy.expose
-    def puppet(self, fqdn, preview=False):
+    def puppet(self, fqdn):
         with self.nodes.db.transaction() as c:
             node = c.root.nodes[fqdn]
             doc = {"environment": "production",
                    "classes": {cls.name: yaml.load(conf) or {} for cls, conf in recurse_classes(node).items()},
                    "parameters": recurse_params(node)}
-            if preview:
-                yield "<plaintext>"
-            yield "---\n"
-            yield yamldump(doc)
+            cherrypy.response.headers["Content-type"] = "text/plain"
+            return "---\n" + yamldump(doc)
 
     @cherrypy.expose
     def login(self):

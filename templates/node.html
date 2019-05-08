@@ -10,7 +10,7 @@
     </form>-->
     <a href="/node_edit?node={{ node.fqdn }}"><button class="secondary-button pure-button">Edit</button></a>
     <a href="/node/{{ node.fqdn }}/attach"><button class="secondary-button pure-button">Attach class</button></a>
-    <a href="/puppet?preview=true&fqdn={{ node.fqdn }}"><button class="secondary-button pure-button">Render</button></a>
+    <a href="/puppet?fqdn={{ node.fqdn }}"><button class="secondary-button pure-button">Render</button></a>
 {% endblock %}
 
 {% block body %}
