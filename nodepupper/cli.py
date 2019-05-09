@@ -72,6 +72,7 @@ def main():
 
     spr_addc = spr_action.add_parser("addclass", help="add a class")
     spr_addc.add_argument("cls", help="name of class to add")
+    spr_addc.add_argument("-r", "--rename", help="rename class")
 
     spr_delc = spr_action.add_parser("delclass", help="delete a class")
     spr_delc.add_argument("cls", help="name of class to delete")
@@ -130,7 +131,8 @@ def main():
         print(r.get(args.host.rstrip("/") + "/api/class").text)
 
     elif args.action == "addclass":
-        r.put(args.host.rstrip("/") + "/api/class/" + args.cls).raise_for_status()
+        r.put(args.host.rstrip("/") + "/api/class/" + args.cls,
+              params={"rename": args.rename} if args.rename else None).raise_for_status()
 
     elif args.action == "delclass":
         r.delete(args.host.rstrip("/") + "/api/class/" + args.cls).raise_for_status()

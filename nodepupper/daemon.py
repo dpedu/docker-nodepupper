@@ -219,10 +219,16 @@ class ClassesApi(object):
         clslist.sort()
         yield yamldump({"classes": clslist})
 
-    def PUT(self, cls):
+    def PUT(self, cls, rename=None):
         with self.nodes.db.transaction() as c:
-            if cls not in c.root.classes:
+            print(cls, rename)
+            if rename:
+                clsobj = c.root.classes[rename]
+                self.nodes.rename_cls(c, clsobj, cls)
+            elif cls not in c.root.classes:
                 c.root.classes[cls] = NClass(cls)
+            else:
+                raise cherrypy.HTTPError(500, "Nothing to do")
 
     def DELETE(self, cls):
         with self.nodes.db.transaction() as c:

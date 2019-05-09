@@ -66,3 +66,13 @@ class NodeOps(object):
         del c.root.nodes[node.fqdn]
         node.fqdn = newname
         c.root.nodes[node.fqdn] = node
+
+    def rename_cls(self, c, cls, newname):
+        # check new name isnt taken
+        if newname in c.root.classes:
+            raise Exception(f"{newname} already exists")
+
+        # move in root
+        del c.root.classes[cls.name]
+        cls.name = newname
+        c.root.classes[cls.name] = cls
