@@ -46,8 +46,9 @@ class NodeOps(object):
     def __init__(self, db_uri):
         uri = urlparse(db_uri)
 
-        self.mysql = MySQLAdapter(host=uri.hostname, user=uri.username, passwd=uri.password, db=uri.path[1:],
-                                  options=Options(keep_history=False))
+        self.mysql = MySQLAdapter(host=uri.hostname, port=uri.port,
+                                  user=uri.username, passwd=uri.password,
+                                  db=uri.path[1:], options=Options(keep_history=False))
         self.storage = RelStorage(adapter=self.mysql)
         self.db = ZODB.DB(self.storage)
 
